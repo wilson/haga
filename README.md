@@ -49,21 +49,7 @@ A standalone Zig library and toolkit for Haga is under development.
 
 ## Grammar Specification
 
-The complete syntax of Haga is defined by this EBNF grammar.
-
+The complete syntax of Haga is defined by [this ABNF grammar](grammar.abnf).
 It is entirely context-free and recursive.
+> If you know of a shorter ABNF definition for a config file other than JSON, please drop me a note.
 
-```ebnf
-manifest   ::= statement*
-statement  ::= (scope | declaration) comment?
-scope      ::= "scope" identifier block
-declaration::= modal noun (","? argument_list)? block?
-
-modal      ::= "must" | "may" | "any" | "some"
-block      ::= "{" statement* "}"
-argument_list ::= value ("," value)*
-value      ::= string | integer | boolean | float
-
-/* Lexical tokens imply standard Ruby-like definitions */
-comment    ::= "#" [^\n]*
-```
