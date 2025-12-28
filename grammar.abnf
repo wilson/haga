@@ -33,7 +33,7 @@ string        = quotation-mark *char quotation-mark
 ;; --- Lexical Tokens ---
 comment       = "#" *printable
 ws            = SP / HTAB
-newline       = LF / CRLF
+newline       = LF
 quotation-mark = %x22  ; "
 char          = unescaped / escaped
 unescaped     = %x20-21 / %x23-5B / %x5D-7E  ; Printable ASCII excluding " and \
