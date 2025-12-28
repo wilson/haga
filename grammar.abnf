@@ -1,0 +1,41 @@
+;; Haga Configuration Language ABNF Specification
+;;
+;; Haga requires strict cardinality for all declarations.
+;; Core ABNF Rules (RFC 5234) are assumed (ALPHA, DIGIT, SP, HTAB).
+
+;; -- Foundations --
+manifest      = *statement
+;; Content is optional to support empty lines and comments.
+statement     = *ws [ scope / declaration ] *ws [comment] newline
+
+;; --- Scoping ---
+scope         = "scope" 1*ws identifier *ws block
+declaration   = cardinality 1*ws noun [ 1*ws argument-list ] [ *ws block ]
+block         = "{" newline *statement *ws "}"
+
+;; --- Keywords ---
+cardinality   = "must" / "may" / "any" / "some"
+noun          = identifier
+argument-list = value *( *ws "," *ws value )
+identifier    = (ALPHA / "_") *(ALPHA / DIGIT / "_")
+
+;; --- Values ---
+value         = string / boolean / decimal / integer
+boolean       = "true" / "false"
+;; Integers are signed, arbitrary precision:
+integer       = ["-"] 1*DIGIT
+;; Decimals are signed, fixed-point, arbitrary precision.
+;; No scientific notation, use strings and application-level parsing for such cases:
+decimal       = ["-"] 1*DIGIT "." 1*DIGIT
+;; Double-quotes only, single-quotes are content, not delimiter:
+string        = quotation-mark *char quotation-mark
+
+;; --- Lexical Tokens ---
+comment       = "#" *printable
+ws            = SP / HTAB
+newline       = LF / CRLF
+quotation-mark = %x22  ; "
+char          = unescaped / escaped
+unescaped     = %x20-21 / %x23-5B / %x5D-7E  ; Printable ASCII excluding " and \
+escaped       = "\" ( "n" / "r" / "t" / "\" / quotation-mark )
+printable     = %x20-7E  ; Any printable ASCII character
