@@ -46,3 +46,24 @@ scope networking {
 Haga is currently used as the configuration language for the [Kozane](https://github.com/wilson/kozane/) Linux "architecture".
 
 A standalone Zig library and toolkit for Haga is under development.
+
+## Grammar Specification
+
+The complete syntax of Haga is defined by this EBNF grammar.
+
+It is entirely context-free and recursive.
+
+```ebnf
+manifest   ::= statement*
+statement  ::= (scope | declaration) comment?
+scope      ::= "scope" identifier block
+declaration::= modal noun (","? argument_list)? block?
+
+modal      ::= "must" | "may" | "any" | "some"
+block      ::= "{" statement* "}"
+argument_list ::= value ("," value)*
+value      ::= string | integer | boolean | float
+
+/* Lexical tokens imply standard Ruby-like definitions */
+comment    ::= "#" [^\n]*
+```
