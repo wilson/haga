@@ -30,7 +30,6 @@ integer       = zero / ( ["-"] nonzero-digit *DIGIT )
 decimal       = ["-"] ( "0" / nonzero-digit *DIGIT ) "." 1*DIGIT
 ; Helpers
 nonzero-digit = %x31-39  ; 1-9
-; DIGIT (0-9) is provided by core ABNF
 
 ;; Double-quotes only, single-quotes are content, not delimiter:
 string        = quote-mark *string-char quote-mark
