@@ -27,7 +27,7 @@ integer       = decimal-int / hex-int
 ;; Reuse decimal-int to enforce sign and leading-zero rules on the integer part.
 decimal       = decimal-int "." 1*DIGIT
 decimal-int   = ["-"] ( "0" / non-zero-digit *DIGIT )
-;; Hex: 0x prefix, standard hex digits. Include sign here if your code supports negative hex.
+;; Hex: 0x prefix, standard hex digits, negative hex literals supported.
 hex-int       = ["-"] "0x" 1*HEXDIGIT
 non-zero-digit = %x31-39 ; 1-9
 ;; Double-quotes only, single-quotes are content, not delimiter:
@@ -41,6 +41,6 @@ quotation-mark = %x22  ; "
 char          = unescaped / escaped
 unescaped     = %x20-21 / %x23-5B / %x5D-7E / UTF8-byte ; Printable ASCII excluding " and \
 escaped       = "\" ( "n" / "r" / "t" / "\" / quotation-mark )
-printable     = %x20-7E / UTF8-byte ; Printable ASCII character plus UTF-8
+printable     = %x20-7E / UTF8-byte ; Printable ASCII characters plus UTF-8
 UTF8-byte     = %x80-FF
 HEXDIGIT      = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
