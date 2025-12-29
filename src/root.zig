@@ -522,6 +522,5 @@ pub const Parser = struct {
 };
 
 test {
-    // As you add more specs, add them here.
     _ = @import("specs/parser_spec.zig");
 }
