@@ -1,5 +1,5 @@
-const std = @import("std");
 const builtin = @import("builtin");
+const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     // Enforce min Zig version. Probably works on 12 also, but I don't care.
