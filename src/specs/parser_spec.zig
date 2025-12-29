@@ -1,5 +1,5 @@
 const std = @import("std");
-const h = @import("../test_helpers.zig");
+const h = @import("spec_helpers.zig");
 const Haga = @import("../root.zig");
 
 // Load the "policy" fixture once
@@ -20,8 +20,8 @@ test "Parser :: Integration :: Kozane Policy (Valid)" {
     const net_scope = stmts[1].scope;
     const rule = net_scope.block.statements.items[0].declaration;
 
-    try h.expectStr("allow", rule.noun);
-    try h.expectStr("tcp", rule.args[0].string);
+    try h.expect("allow", rule.noun);
+    try h.expect("tcp", rule.args[0].string);
     try h.expect(@as(i128, 22), rule.args[1].integer);
 }
 
@@ -32,7 +32,7 @@ test "Parser :: Integration :: Kozane Policy (Valid)" {
 test "Parser :: Strictness :: rejects trailing whitespace in block start" {
     const src = "scope foo {   \n}";
     var parser = Haga.Parser.init(std.testing.allocator, src);
-    try h.expectError(error.TrailingWhitespace, parser.parseManifest());
+    try h.expect(error.TrailingWhitespace, parser.parseManifest());
 }
 
 test "Parser :: Strictness :: rejects indented closing brace" {
@@ -42,14 +42,14 @@ test "Parser :: Strictness :: rejects indented closing brace" {
         \\  }
     ;
     var parser = Haga.Parser.init(std.testing.allocator, src);
-    try h.expectError(error.TrailingWhitespace, parser.parseManifest());
+    try h.expect(error.TrailingWhitespace, parser.parseManifest());
 }
 
 test "Parser :: Strictness :: rejects inline blocks" {
     const src = "scope foo { must bar }";
     var parser = Haga.Parser.init(std.testing.allocator, src);
     // Rejected because of the space after "{"
-    try h.expectError(error.TrailingWhitespace, parser.parseManifest());
+    try h.expect(error.TrailingWhitespace, parser.parseManifest());
 }
 
 test "Parser :: UTF-8 :: accepts high-bit identifiers" {
@@ -63,5 +63,5 @@ test "Parser :: UTF-8 :: accepts high-bit identifiers" {
     defer manifest.deinit(std.testing.allocator);
 
     const scope_name = manifest.statements.items[0].scope.name;
-    try h.expectStr("サーバー", scope_name);
+    try h.expect("サーバー", scope_name);
 }

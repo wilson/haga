@@ -10,6 +10,9 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
+// Expose sys namespace to consumers, e.g. sys.Writer
+pub const sys = @import("sys.zig");
+
 // -------------------------------------------------------------------------
 // Abstract Syntax Tree
 // -------------------------------------------------------------------------
