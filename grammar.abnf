@@ -22,25 +22,27 @@ identifier    = (ALPHA / "_" / UTF8-byte) *(ALPHA / DIGIT / "_" / UTF8-byte)
 ;; --- Values ---
 value         = string / boolean / decimal / integer
 boolean       = "true" / "false"
-;; Integers are signed, arbitrary precision, and may be in base-10 or base-16.
-integer       = decimal-int / hex-int
-;; Reuse decimal-int to enforce sign and leading-zero rules on the integer part.
-decimal       = decimal-int "." 1*DIGIT
-decimal-int   = ["-"] ( "0" / non-zero-digit *DIGIT )
-;; Hex: 0x prefix, standard hex digits, negative hex literals supported.
-hex-int       = ["-"] "0x" 1*HEXDIGIT
-non-zero-digit = %x31-39 ; 1-9
+; Strict Integer: No leading zeros. No hex. No octal.
+; Rejects "-0".
+zero          = "0"
+integer       = zero / ( ["-"] nonzero-digit *DIGIT )
+; Decimal: Allows "-0.x".
+decimal       = ["-"] ( "0" / nonzero-digit *DIGIT ) "." 1*DIGIT
+; Helpers
+nonzero-digit = %x31-39  ; 1-9
+; DIGIT (0-9) is provided by core ABNF
+
 ;; Double-quotes only, single-quotes are content, not delimiter:
-string        = quotation-mark *char quotation-mark
+string        = quote-mark *string-char quote-mark
 
 ;; --- Lexical Tokens ---
 comment       = "#" *printable
 space         = SP
 newline       = LF
-quotation-mark = %x22  ; "
-char          = unescaped / escaped
-unescaped     = %x20-21 / %x23-5B / %x5D-7E / UTF8-byte ; Printable ASCII excluding " and \
-escaped       = "\" ( "n" / "r" / "t" / "\" / quotation-mark )
-printable     = %x20-7E / UTF8-byte ; Printable ASCII characters plus UTF-8
+quote-mark    = %x22  ; "
 UTF8-byte     = %x80-FF
-HEXDIGIT      = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+; No raw tabs, no raw newlines.
+unescaped     = %x20-21 / %x23-5B / %x5D-7E / UTF8-byte
+escaped       = "\" ( "n" / "r" / "t" / "\" / quote-mark )
+printable     = %x20-7E / UTF8-byte ; Printable ASCII characters plus UTF-8
+string-char   = unescaped / escaped
