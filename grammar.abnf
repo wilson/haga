@@ -1,7 +1,7 @@
 ;; Haga Configuration Language ABNF Specification
 ;;
 ;; Haga requires strict cardinality for all declarations.
-;; Core ABNF Rules (RFC 5234) are assumed (ALPHA, DIGIT, SP, HTAB).
+;; Core ABNF Rules (RFC 5234) are assumed (ALPHA, DIGIT, SP).
 
 ;; -- Foundations --
 manifest      = *statement
