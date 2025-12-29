@@ -1,8 +1,16 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub fn build(b: *std.Build) void {
     // Enforce min Zig version. Probably works on 12 also, but I don't care.
-    b.minimum_zig_version = .{ .major = 0, .minor = 13, .patch = 0 };
+    const current = builtin.zig_version;
+    const min_minor = 13;
+    if (current.major == 0 and current.minor < min_minor) {
+        @compileError(std.fmt.comptimePrint(
+            "Haga requires Zig 0.{d}.0+, but found 0.{d}.{d}",
+            .{ min_minor, current.minor, current.patch }
+        ));
+    }
 
     // Standard options are required for the test runner,
     // even though the module itself is just source code.
