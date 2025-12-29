@@ -6,36 +6,41 @@
 ;; -- Foundations --
 manifest      = *statement
 ;; Content is optional to support empty lines and comments.
-statement     = *ws [ scope / declaration ] *ws [comment] newline
+statement     = *space [ scope / declaration ] *space [comment] newline
 
 ;; --- Scoping ---
-scope         = "scope" 1*ws identifier *ws block
-declaration   = cardinality 1*ws noun [ 1*ws argument-list ] [ *ws block ]
-block         = "{" newline *statement *ws "}"
+scope         = "scope" 1*space identifier 1*space block
+declaration   = cardinality 1*space noun [ 1*space argument-list ]
+block         = "{" newline *statement "}"
 
 ;; --- Keywords ---
 cardinality   = "must" / "may" / "any" / "some"
 noun          = identifier
-argument-list = value *( *ws "," *ws value )
-identifier    = (ALPHA / "_") *(ALPHA / DIGIT / "_")
+argument-list = value *( "," space value )
+identifier    = (ALPHA / "_" / UTF8-byte) *(ALPHA / DIGIT / "_" / UTF8-byte)
 
 ;; --- Values ---
 value         = string / boolean / decimal / integer
 boolean       = "true" / "false"
-;; Integers are signed, arbitrary precision:
-integer       = ["-"] 1*DIGIT
-;; Decimals are signed, fixed-point, arbitrary precision.
-;; No scientific notation, use strings and application-level parsing for such cases:
-decimal       = ["-"] 1*DIGIT "." 1*DIGIT
+;; Integers are signed, arbitrary precision, and may be in base-10 or base-16.
+integer       = decimal-int / hex-int
+;; Reuse decimal-int to enforce sign and leading-zero rules on the integer part.
+decimal       = decimal-int "." 1*DIGIT
+decimal-int   = ["-"] ( "0" / non-zero-digit *DIGIT )
+;; Hex: 0x prefix, standard hex digits. Include sign here if your code supports negative hex.
+hex-int       = ["-"] "0x" 1*HEXDIGIT
+non-zero-digit = %x31-39 ; 1-9
 ;; Double-quotes only, single-quotes are content, not delimiter:
 string        = quotation-mark *char quotation-mark
 
 ;; --- Lexical Tokens ---
 comment       = "#" *printable
-ws            = SP / HTAB
+space         = SP
 newline       = LF
 quotation-mark = %x22  ; "
 char          = unescaped / escaped
-unescaped     = %x20-21 / %x23-5B / %x5D-7E  ; Printable ASCII excluding " and \
+unescaped     = %x20-21 / %x23-5B / %x5D-7E / UTF8-byte ; Printable ASCII excluding " and \
 escaped       = "\" ( "n" / "r" / "t" / "\" / quotation-mark )
-printable     = %x20-7E  ; Any printable ASCII character
+printable     = %x20-7E / UTF8-byte ; Printable ASCII character plus UTF-8
+UTF8-byte     = %x80-FF
+HEXDIGIT      = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"

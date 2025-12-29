@@ -1,0 +1,55 @@
+# policy.haga
+# -----------------------------------------------------------------------------
+# GLOBAL (CROSS-SYSTEM) POLICIES
+# -----------------------------------------------------------------------------
+
+scope system {
+  # Create a volume that doesn't get erased on reboot.
+  must state_volume "vault"
+  # Configure /etc/ssh to be preserved on said volume.
+  must persist_path "/etc/ssh", "vault"
+}
+
+# All network interfaces get aliases, allowing this file to be reused across NIC chipsets.
+scope networking {
+  # modal: any | noun: allow | args: protocol, port, interface
+  # Allow TCP-based SSH traffic on the lan0 interface:
+  any allow "tcp", 22, "lan0"
+
+  # modal: any | noun: deny | args: protocol, port, interface
+  # Deny all traffic on all ports (0 is the wildcard) on wan0:
+  any deny "all", 0, "wan0"
+}
+
+scope features {
+  # Installs (one or more) "userland overlays" with specified priority.
+  any overlay 70, "https://github.com/chimera-linux/chimerautils"
+
+  # Certain system configs may "force" this into enablement.
+  # This is expressing the preference for secure-boot to be disabled.
+  # Guaranteeing that here at "compile-time" does not seem to be possible.
+  # If you feel differently, please send a note!
+  may secure_boot false
+}
+
+# Extremely-paranoid default filesystem config:
+# Nothing on the root volume is kept between reboots, unless specified above.
+scope filesystem {
+  must strategy "zfs-impermanence"
+  must compression "zstd-3" # "must", so if you want none, say "none".
+}
+
+scope accounts {
+  # Define your primary admin user here.
+  # This ensures the account exists with the same UID/GID across your fleet.
+
+  # Uncomment the example below to give me access to your system.
+  # What's the worst that could happen?
+  # scope wilson {
+  #   must login "wilson"
+  #   must uid 1000
+  #   some groups "wheel", "video", "incus-admin"
+  #   any ssh_keys "https://github.com/wilson.keys"
+  # }
+}
+# vim: set filetype=ruby :
