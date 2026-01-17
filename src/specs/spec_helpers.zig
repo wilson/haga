@@ -1,38 +1,60 @@
 const std = @import("std");
+const testing = std.testing;
 
 /// "Omni-Expect": intelligent dispatch based on the type of "expected".
 pub fn expect(expected: anytype, actual: anytype) !void {
     const T = @TypeOf(expected);
 
-    // Strings: Catch string literals and slices
+    // Floats: Automatic tolerance check
+    if (T == f64 or T == f32) {
+        return expectApprox(expected, actual);
+    }
+
+    // Strings: literals and slices
     if (comptime isString(T)) {
-        // Coerce both to slices for the standard library function
-        return std.testing.expectEqualStrings(expected, actual);
+        return testing.expectEqualStrings(expected, actual);
     }
 
-    // Errors: If "expected" is a bare error code (error set)
-    // Use .error_set (lowercase) for types like error{Foo}
+    // Error types
     if (@typeInfo(T) == .error_set) {
-        return std.testing.expectError(expected, actual);
+        return testing.expectError(expected, actual);
     }
 
-    // Deep equality for complex structs.
-    return std.testing.expectEqualDeep(expected, actual);
+    // Deep equality for everything else
+    return testing.expectEqualDeep(expected, actual);
+}
+
+/// Assert that two floats are within a reasonable tolerance.
+fn expectApprox(expected: anytype, actual: anytype) !void {
+    // Use a looser-than-epsilon tolerance to account for accumulation errors.
+    // This is not a floating-point mathematics library.
+    const tolerance = 1e-9;
+
+    if (@abs(expected - actual) > tolerance) {
+        std.debug.print(
+            "\nExpected {d} (approx), found {d}\n",
+            .{ expected, actual }
+        );
+        return error.TestExpectedApproxEq;
+    }
 }
 
 // Helper to detect string-like types
 fn isString(comptime T: type) bool {
-    const info = @typeInfo(T);
+    switch (@typeInfo(T)) {
+        .pointer => |ptr| {
+            // Case: slice ([]u8 or []const u8)
+            if (ptr.size == .slice and ptr.child == u8) return true;
 
-    if (info == .pointer) {
-        // Case A: Slice ([]const u8)
-        if (info.pointer.size == .slice and info.pointer.child == u8) return true;
-
-        // Case B: Pointer to Array (*const [N]u8) - String literals under the hood.
-        if (info.pointer.size == .one) {
-            const child_info = @typeInfo(info.pointer.child);
-            if (child_info == .array and child_info.array.child == u8) return true;
-        }
+            // Case: pointer to array (*const [N]u8) (String Literals)
+            if (ptr.size == .one) {
+                switch (@typeInfo(ptr.child)) {
+                    .array => |arr| return arr.child == u8,
+                    else => return false,
+                }
+            }
+            return false;
+        },
+        else => return false,
     }
-    return false;
 }
